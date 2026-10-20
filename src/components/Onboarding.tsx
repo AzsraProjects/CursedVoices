@@ -1,9 +1,9 @@
 // First launch: language, microphone, virtual cable. Three settings and the voice is live.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Download, Loader2, XCircle } from "lucide-react";
 import { cv } from "../lib/bridge";
-import { CABLE_PATTERN, useDevices } from "../lib/devices";
+import { CABLE_PATTERN, isVirtualMic, pickRealMic, useDevices } from "../lib/devices";
 import { LANGUAGES, useT } from "../lib/i18n";
 import { useStore } from "../lib/store";
 import { Meter } from "./ui";
@@ -12,9 +12,19 @@ export function Onboarding() {
   const t = useT();
   const { data, setSettings } = useStore();
   const s = data.settings;
-  const { inputs, outputs, refresh } = useDevices();
+  const { inputs, outputs, defaultInputLabel, refresh } = useDevices();
   const cable = outputs.find((o) => CABLE_PATTERN.test(o.label));
   const [busy, setBusy] = useState(false);
+
+  // Start on a real microphone: the Windows default is often a voice changer's virtual mic.
+  const picked = useRef(false);
+  useEffect(() => {
+    if (picked.current || s.inputDeviceId !== "default" || !inputs.some((d) => d.label)) return;
+    picked.current = true;
+    const id = pickRealMic(inputs, defaultInputLabel);
+    if (id && id !== "default") setSettings({ inputDeviceId: id });
+  }, [inputs, defaultInputLabel, s.inputDeviceId, setSettings]);
+  const micLabel = s.inputDeviceId === "default" ? defaultInputLabel : inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-void-950/90 p-6">
@@ -48,6 +58,7 @@ export function Onboarding() {
             <option value="default">{t("settings.default")}</option>
             {inputs.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || d.deviceId.slice(0, 8)}</option>)}
           </select>
+          {isVirtualMic(micLabel) && <p className="mt-2 text-xs text-amber-300">{t("settings.virtualMic")}</p>}
           <Meter which="input" className="mt-3" />
         </section>
 

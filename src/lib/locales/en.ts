@@ -211,6 +211,7 @@ export const en: Record<Key, string> = {
   "settings.noiseHelp": "Filters hiss and background noise before the effects.",
   "settings.sameDevice": "The OBS output and the headphones are the same device: you will hear yourself twice.",
   "settings.refresh": "Refresh the list",
+  "settings.virtualMic": "This microphone comes from other software (Voicemod, virtual cable…): your voice would be changed twice, or loop. Pick your real microphone.",
 
   "obs.cable": "Virtual audio cable",
   "obs.cableOk": "VB-CABLE is installed and ready.",

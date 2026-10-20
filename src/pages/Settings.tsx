@@ -3,7 +3,7 @@ import { AppWindow, Cable, CheckCircle2, Download, Keyboard, Loader2, RefreshCw,
 import { Card, HotkeyInput, Meter, MidiLearn, PageHeader, Row, Slider, Switch } from "../components/ui";
 import { UpdateButton } from "../components/UpdateButton";
 import { cv } from "../lib/bridge";
-import { CABLE_PATTERN, useDevices } from "../lib/devices";
+import { CABLE_PATTERN, isVirtualMic, useDevices } from "../lib/devices";
 import { LANGUAGES, useT, type Key } from "../lib/i18n";
 import { midi } from "../lib/midi";
 import { useStore } from "../lib/store";
@@ -49,8 +49,9 @@ function AudioTab() {
   const t = useT();
   const { data, setSettings } = useStore();
   const s = data.settings;
-  const { inputs, outputs, refresh } = useDevices();
+  const { inputs, outputs, defaultInputLabel, refresh } = useDevices();
   const cable = outputs.find((o) => CABLE_PATTERN.test(o.label));
+  const micLabel = s.inputDeviceId === "default" ? defaultInputLabel : inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
   const same = !!s.monitorOutputId && (s.monitorOutputId === s.streamOutputId || (!s.streamOutputId && s.monitorOutputId === cable?.deviceId));
   return (
     <div className="space-y-6">
@@ -73,6 +74,7 @@ function AudioTab() {
             {outputs.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || d.deviceId.slice(0, 8)}</option>)}
           </select>
         </Row>
+        {isVirtualMic(micLabel) && <p className="mt-3 text-xs text-amber-300">{t("settings.virtualMic")}</p>}
         {same && <p className="mt-3 text-xs text-amber-300">{t("settings.sameDevice")}</p>}
       </Card>
 

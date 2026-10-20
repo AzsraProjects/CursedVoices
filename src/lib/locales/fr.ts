@@ -212,6 +212,7 @@ export const fr = {
   "settings.noiseHelp": "Filtre le souffle et les bruits de fond avant les effets.",
   "settings.sameDevice": "La sortie OBS et le casque sont le même périphérique : tu vas t'entendre en double.",
   "settings.refresh": "Actualiser la liste",
+  "settings.virtualMic": "Ce micro vient d'un autre logiciel (Voicemod, câble virtuel…) : ta voix serait modifiée deux fois, ou tournerait en boucle. Choisis ton vrai micro.",
 
   "obs.cable": "Câble audio virtuel",
   "obs.cableOk": "VB-CABLE est installé et prêt.",
