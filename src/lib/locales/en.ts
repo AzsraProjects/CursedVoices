@@ -29,11 +29,13 @@ export const en: Record<Key, string> = {
   "status.mic.missing": "Microphone not found",
   "status.mic.starting": "Starting the microphone…",
   "status.mic.off": "Microphone stopped",
+  "status.mic.loop": "The chosen microphone is the virtual cable: pick your real microphone in Settings",
   "status.stream.ok": "To OBS: {device}",
   "status.stream.missing": "Virtual cable not found: OBS receives nothing",
   "status.stream.starting": "Connecting the output…",
   "status.stream.off": "Output stopped",
   "status.stream.denied": "Output denied",
+  "status.stream.loop": "Loop detected",
 
   "voices.title": "Voices",
   "voices.subtitle": "Click a voice to wear it: it goes to OBS straight away.",

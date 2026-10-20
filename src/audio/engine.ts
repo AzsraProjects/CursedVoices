@@ -16,7 +16,7 @@ import { createEffect, type EffectInstance } from "./effects";
 
 type Role = "stream" | "monitor";
 
-export type DeviceState = "ok" | "missing" | "denied" | "starting" | "off";
+export type DeviceState = "ok" | "missing" | "denied" | "starting" | "off" | "loop";
 
 export interface EngineStatus {
   mic: DeviceState;
@@ -29,6 +29,7 @@ export interface EngineStatus {
 const FADE = 0.04;
 const PITCH_LATENCY_MS = (896 / 48000) * 1000;
 const CABLE_PATTERN = /cable input|vb-audio virtual cable/i;
+const LOOP_PATTERN = /cable output|vb-audio virtual cable/i;
 const WORKLETS = ["worklets/pitch-shifter.js", "worklets/dynamics.js"];
 
 const dbToLin = (db: number) => Math.pow(10, db / 20);
@@ -256,10 +257,9 @@ export class AudioEngine {
       this.stream = new Graph("stream");
       await this.stream.ready;
       this.stream.setVoice(this.voice?.effects ?? null);
+      // Plugging any USB device fires this: only what actually changed is reopened, so the
+      // stream never glitches because a gamepad was plugged in.
       navigator.mediaDevices.addEventListener("devicechange", () => {
-        this.micKey = "";
-        this.streamSink = "\u0000";
-        this.monitorSink = "\u0000";
         if (this.settings) void this.apply(this.settings);
       });
       this.watchdog = setInterval(() => this.watch(), 2000);
@@ -285,8 +285,15 @@ export class AudioEngine {
 
   private async ensureMic(s: Settings): Promise<void> {
     const key = `${s.inputDeviceId}|${s.noiseSuppression}`;
-    const alive = this.mic?.getAudioTracks().some((t) => t.readyState === "live");
-    if (key === this.micKey && alive) return;
+    const wanted = s.inputDeviceId && s.inputDeviceId !== "default" ? s.inputDeviceId : undefined;
+    const track = this.mic?.getAudioTracks()[0];
+    if (key === this.micKey && track?.readyState === "live") {
+      // Running on the default microphone while the chosen one was away: switch back
+      // only once it is plugged in again.
+      if (!wanted || track.getSettings().deviceId === wanted) return;
+      const devices = await navigator.mediaDevices.enumerateDevices().catch(() => [] as MediaDeviceInfo[]);
+      if (!devices.some((d) => d.kind === "audioinput" && d.deviceId === wanted)) return;
+    }
     this.micKey = key;
     this.mic?.getTracks().forEach((t) => t.stop());
     this.mic = null;
@@ -302,7 +309,6 @@ export class AudioEngine {
       video: false,
     });
     try {
-      const wanted = s.inputDeviceId && s.inputDeviceId !== "default" ? s.inputDeviceId : undefined;
       try {
         this.mic = await navigator.mediaDevices.getUserMedia(constraints(wanted));
       } catch (err) {
@@ -311,7 +317,14 @@ export class AudioEngine {
         this.mic = await navigator.mediaDevices.getUserMedia(constraints());
       }
       this.mic.getAudioTracks().forEach((t) => t.addEventListener("ended", () => { this.micKey = ""; }));
-      this.emit({ mic: "ok" });
+      // The virtual cable as microphone would feed our own output back in, forever.
+      if (this.mic.getAudioTracks().some((t) => LOOP_PATTERN.test(t.label))) {
+        this.mic.getTracks().forEach((t) => t.stop());
+        this.mic = null;
+        this.emit({ mic: "loop" });
+      } else {
+        this.emit({ mic: "ok" });
+      }
     } catch (err) {
       const denied = err instanceof DOMException && err.name === "NotAllowedError";
       this.emit({ mic: denied ? "denied" : "missing" });
@@ -369,7 +382,7 @@ export class AudioEngine {
       if (g && g.ctx.state === "suspended") void g.ctx.resume().catch(() => undefined);
     }
     const dead = !this.mic || this.mic.getAudioTracks().every((t) => t.readyState === "ended");
-    if (dead && this.settings && this.status.mic !== "denied") {
+    if (dead && this.settings && this.status.mic !== "denied" && this.status.mic !== "loop") {
       this.micKey = "";
       void this.apply(this.settings);
     }

@@ -30,11 +30,13 @@ export const fr = {
   "status.mic.missing": "Micro introuvable",
   "status.mic.starting": "Démarrage du micro…",
   "status.mic.off": "Micro arrêté",
+  "status.mic.loop": "Le micro choisi est le câble virtuel : choisis ton vrai micro dans Paramètres",
   "status.stream.ok": "Vers OBS : {device}",
   "status.stream.missing": "Câble virtuel introuvable : OBS ne reçoit rien",
   "status.stream.starting": "Connexion à la sortie…",
   "status.stream.off": "Sortie arrêtée",
   "status.stream.denied": "Sortie refusée",
+  "status.stream.loop": "Boucle détectée",
 
   "voices.title": "Voix",
   "voices.subtitle": "Clique sur une voix pour la porter : elle part aussitôt vers OBS.",
