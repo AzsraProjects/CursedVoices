@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#2ee6d6"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#d9a531"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b8fbf5"/>
+      <stop offset="1" stop-color="#2ee6d6"/>
+    </radialGradient>
+  </defs>
+  <path d="M128 8 232 68v120L128 248 24 188V68z" fill="url(#rim)"/>
+  <path d="M128 24 218 76v104l-90 52-90-52V76z" fill="#0b0d1a"/>
+  <!-- microphone head, shaped like a cursed mask -->
+  <rect x="88" y="52" width="80" height="104" rx="40" fill="url(#gold)"/>
+  <path d="M100 98c10-8 22-8 28 2-8 6-20 8-28-2z" fill="#0b0d1a"/>
+  <path d="M156 98c-10-8-22-8-28 2 8 6 20 8 28-2z" fill="#0b0d1a"/>
+  <circle cx="113" cy="98" r="5" fill="url(#eye)"/>
+  <circle cx="143" cy="98" r="5" fill="url(#eye)"/>
+  <path d="M108 128h40l-6 10h-4l-3-6-3 6h-4l-3-6-3 6h-4l-3-6-3 6h-4z" fill="#0b0d1a"/>
+  <!-- stand -->
+  <path d="M70 120v4a58 58 0 0 0 116 0v-4" fill="none" stroke="url(#rim)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M128 182v24M104 210h48" stroke="url(#rim)" stroke-width="10" stroke-linecap="round"/>
+</svg>

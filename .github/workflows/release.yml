@@ -1,0 +1,71 @@
+# Every push to main builds, tests and publishes a new version to the Releases.
+# The app's "Update" button picks it up within 30 minutes (or right away on "check").
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests (DSP)
+        run: npm test
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Version
+        shell: pwsh
+        run: |
+          $v = "1.0.${{ github.run_number }}"
+          npm version $v --no-git-tag-version --allow-same-version
+          "VERSION=$v" >> $env:GITHUB_ENV
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test (the app starts, every page renders, every voice measures clean)
+        shell: pwsh
+        env:
+          CV_SMOKE: ${{ runner.temp }}\smoke
+          CV_SMOKE_PAGES: voices,lab,soundboard,settings
+          CV_SMOKE_SELFTEST: "1"
+        run: |
+          $p = Start-Process -FilePath "node_modules\electron\dist\electron.exe" -ArgumentList "." -PassThru -Wait
+          Get-Content "$env:CV_SMOKE\errors.txt" -ErrorAction SilentlyContinue
+          Get-Content "$env:CV_SMOKE\selftest.json" -ErrorAction SilentlyContinue
+          if ($p.ExitCode -ne 0) { throw "smoke test failed ($($p.ExitCode))" }
+
+      - name: Package and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
+
+      - name: Keep the smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ env.VERSION }}
+          path: ${{ runner.temp }}\smoke
+          if-no-files-found: ignore

@@ -1,0 +1,62 @@
+@import "@fontsource/cinzel/600.css";
+@import "@fontsource/cinzel/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { @apply h-full; }
+  body { @apply bg-void-900 text-slate-200 font-sans antialiased select-none; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { @apply bg-void-600 rounded-full; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  select, input[type="text"], input[type="search"], textarea {
+    @apply bg-void-800 border border-void-600 rounded-md px-2 py-1.5 text-sm text-slate-100 outline-none focus:border-nexus-500 select-text;
+  }
+  :focus-visible { outline: 2px solid theme("colors.nexus.400"); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+}
+
+@layer components {
+  .card { @apply rounded-xl border border-void-700 bg-void-850/90 p-4 shadow-lg; }
+  .card-title { @apply mb-3 text-xs font-semibold uppercase tracking-widest text-storm-300; }
+  .btn { @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition disabled:opacity-40 disabled:pointer-events-none; }
+  .btn-primary { @apply btn bg-gradient-to-r from-nexus-600 to-storm-600 text-white hover:shadow-glow; }
+  .btn-gold { @apply btn bg-gold-500 text-void-950 hover:bg-gold-400 hover:shadow-gold; }
+  .btn-ghost { @apply btn border border-void-600 text-slate-300 hover:border-nexus-500 hover:text-white; }
+  .btn-danger { @apply btn border border-rose-800 text-rose-300 hover:bg-rose-900/40; }
+  .chip { @apply rounded-full border border-void-600 px-2.5 py-0.5 text-xs text-slate-300; }
+  .title-display { @apply font-display tracking-wide text-gold-400; }
+  .label { @apply text-xs uppercase tracking-widest text-slate-400; }
+
+  /* iOS-style switch, from Simersion */
+  .switch { @apply relative h-[26px] w-[42px] shrink-0 cursor-pointer appearance-none rounded-full bg-void-600 transition-colors; }
+  .switch::after { content: ""; @apply absolute left-[3px] top-[3px] h-5 w-5 rounded-full bg-white shadow transition-transform; }
+  .switch:checked { @apply bg-nexus-500; }
+  .switch:checked::after { transform: translateX(16px); }
+
+  /* Slider */
+  .range { @apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-void-700; }
+  .range::-webkit-slider-thumb { @apply h-4 w-4 appearance-none rounded-full border-2 border-nexus-300 bg-void-900 shadow-glow transition; }
+  .range:hover::-webkit-slider-thumb { @apply border-curse-300 scale-110; }
+}
+
+/* Soft halo across the top, from Simersion */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 260px;
+  z-index: 0;
+  opacity: 0.12;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 100% at 15% 0%, #8b5cf6, transparent 62%),
+    radial-gradient(110% 100% at 90% 0%, #2ee6d6, transparent 64%);
+}
+#root { position: relative; z-index: 1; }
