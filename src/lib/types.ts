@@ -81,6 +81,8 @@ export interface Settings {
   activeVoiceId: string;
   inputGainDb: number;
   noiseSuppression: boolean;
+  micGate: boolean; // noise filter before every voice
+  micGateDb: number; // opens above this level (dBFS)
   sfxVolume: number; // 0..1
   sfxToStream: boolean;
   sfxToMonitor: boolean;

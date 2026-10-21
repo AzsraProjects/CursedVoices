@@ -24,7 +24,8 @@ export function Onboarding() {
     const id = pickRealMic(inputs, defaultInputLabel);
     if (id && id !== "default") setSettings({ inputDeviceId: id });
   }, [inputs, defaultInputLabel, s.inputDeviceId, setSettings]);
-  const micLabel = s.inputDeviceId === "default" ? defaultInputLabel : inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
+  // On "default" the engine swaps a virtual default for the real microphone by itself.
+  const micLabel = inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-void-950/90 p-6">

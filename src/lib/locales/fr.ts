@@ -212,6 +212,12 @@ export const fr = {
   "settings.noiseHelp": "Filtre le souffle et les bruits de fond avant les effets.",
   "settings.sameDevice": "La sortie OBS et le casque sont le même périphérique : tu vas t'entendre en double.",
   "settings.refresh": "Actualiser la liste",
+  "gate.title": "Filtre de bruit du micro",
+  "gate.help": "Sous le trait blanc ({db} dB), le micro reste fermé : respiration, clavier et bruit de la pièce ne passent pas. Monte le trait si tu entends encore du bruit.",
+  "gate.calibrate": "Calibrer",
+  "gate.listening": "Silence…",
+  "gate.calibrateHelp": "Ne parle pas pendant 3 secondes : j'écoute le bruit de ta pièce.",
+  "gate.calibrated": "Filtre réglé à {0} dB",
   "settings.virtualMic": "Ce micro vient d'un autre logiciel (Voicemod, câble virtuel…) : ta voix serait modifiée deux fois, ou tournerait en boucle. Choisis ton vrai micro.",
 
   "obs.cable": "Câble audio virtuel",

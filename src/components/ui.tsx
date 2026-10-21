@@ -119,14 +119,17 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
 }
 
 /** Live level meter fed by the engine (dBFS, -60..0). */
-export function Meter({ which, vertical = false, className = "" }: { which: "input" | "output"; vertical?: boolean; className?: string }) {
+const METER_FLOOR = -72;
+const meterPos = (db: number) => Math.max(0, Math.min(1, (db - METER_FLOOR) / -METER_FLOOR));
+
+export function Meter({ which, vertical = false, className = "", marker }: { which: "input" | "output"; vertical?: boolean; className?: string; marker?: number }) {
   const bar = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let raf = 0;
     let shown = 0;
     const tick = () => {
       const db = engine.meter(which);
-      const v = Math.max(0, Math.min(1, (db + 60) / 60));
+      const v = meterPos(db);
       shown = v > shown ? v : shown * 0.9 + v * 0.1;
       if (bar.current) {
         if (vertical) bar.current.style.height = `${shown * 100}%`;
@@ -141,6 +144,9 @@ export function Meter({ which, vertical = false, className = "" }: { which: "inp
   return (
     <div className={`relative overflow-hidden rounded-full bg-void-700 ${vertical ? "h-full w-1.5" : "h-1.5 w-full"} ${className}`}>
       <div ref={bar} className={`absolute bottom-0 left-0 rounded-full ${vertical ? "w-full" : "h-full"}`} />
+      {marker !== undefined && !vertical && (
+        <div className="absolute top-0 h-full w-0.5 bg-white/80" style={{ left: `calc(${meterPos(marker) * 100}% - 1px)` }} />
+      )}
     </div>
   );
 }

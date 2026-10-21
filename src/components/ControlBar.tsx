@@ -7,6 +7,7 @@ import { engine } from "../audio/engine";
 import { useDevices } from "../lib/devices";
 import { useT } from "../lib/i18n";
 import { useEngineTick, useStore } from "../lib/store";
+import { MicSensitivity } from "./MicSensitivity";
 import { Meter, Slider, VoiceLogo } from "./ui";
 
 export function ControlBar({ previewing, onOpenVoices }: { previewing: boolean; onOpenVoices: () => void }) {
@@ -104,7 +105,7 @@ export function ControlBar({ previewing, onOpenVoices }: { previewing: boolean; 
               <ChevronUp size={18} />
             </button>
             {open && (
-              <div className="absolute bottom-12 left-1/2 w-80 -translate-x-1/2 animate-rise rounded-xl border border-void-600 bg-void-850 p-4 shadow-2xl">
+              <div className="absolute bottom-12 left-1/2 w-96 -translate-x-1/2 animate-rise rounded-xl border border-void-600 bg-void-850 p-4 shadow-2xl">
                 <div className="label mb-2 flex items-center gap-2">
                   <Headphones size={14} /> {t("control.monitorVolume")}
                 </div>
@@ -125,6 +126,7 @@ export function ControlBar({ previewing, onOpenVoices }: { previewing: boolean; 
                   ))}
                 </select>
                 <p className="mt-3 text-xs text-amber-300/90">{t("control.headphones")}</p>
+                <div className="mt-4 border-t border-void-700 pt-4"><MicSensitivity compact /></div>
               </div>
             )}
           </div>

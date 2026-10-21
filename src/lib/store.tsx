@@ -21,6 +21,8 @@ export const DEFAULT_SETTINGS: Settings = {
   activeVoiceId: "",
   inputGainDb: 0,
   noiseSuppression: false,
+  micGate: true,
+  micGateDb: -48,
   sfxVolume: 0.8,
   sfxToStream: true,
   sfxToMonitor: true,

@@ -12,6 +12,7 @@
 // - A watchdog resumes suspended contexts and reopens a microphone that went away.
 
 import type { EffectState, Settings, Sound, VoiceProfile } from "../lib/types";
+import { isVirtualMic, pickRealMic } from "../lib/devices";
 import { createEffect, type EffectInstance } from "./effects";
 
 type Role = "stream" | "monitor";
@@ -91,6 +92,7 @@ class Graph {
   readonly inputMeter: AnalyserNode;
   readonly outputMeter: AnalyserNode;
   private chain?: Chain;
+  private gate?: AudioWorkletNode;
   private signature = "";
   ready: Promise<void>;
 
@@ -124,7 +126,16 @@ class Graph {
     this.master.connect(this.limiter).connect(this.outGain);
     this.outGain.connect(this.outputMeter);
     this.outGain.connect(c.destination);
-    this.ready = Promise.all(WORKLETS.map((w) => c.audioWorklet.addModule(new URL(w, document.baseURI).href))).then(() => undefined);
+    this.ready = Promise.all(WORKLETS.map((w) => c.audioWorklet.addModule(new URL(w, document.baseURI).href))).then(() => {
+      // Microphone noise filter, before every voice (and the natural mic): breathing, the
+      // keyboard and the room stay out of the stream when you are not speaking.
+      this.gate = new AudioWorkletNode(c, "cv-noise-gate", {
+        numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: "explicit",
+        parameterData: { threshold: -90, release: 220 },
+      });
+      this.inputGain.disconnect(this.muteGain);
+      this.inputGain.connect(this.gate).connect(this.muteGain);
+    });
   }
 
   attachMic(stream: MediaStream | null): void {
@@ -158,6 +169,8 @@ class Graph {
   setLevels(s: Settings, bypass: boolean, sfxOn: boolean, outVolume: number): void {
     this.at(this.inputGain.gain, dbToLin(s.inputGainDb));
     this.at(this.muteGain.gain, s.micMuted ? 0 : 1);
+    const threshold = this.gate?.parameters.get("threshold");
+    if (threshold) threshold.value = s.micGate ? s.micGateDb : -90;
     const voiceOn = s.voiceEnabled && !bypass && !!this.chain;
     this.at(this.dryGain.gain, voiceOn ? 0 : 1);
     this.at(this.wetGain.gain, voiceOn ? 1 : 0);
@@ -201,6 +214,7 @@ class Graph {
   }
 
   close(): void {
+    this.gate?.port.postMessage({ dispose: true });
     this.setVoice(null);
     this.attachMic(null);
     void this.ctx.close().catch(() => undefined);
@@ -317,6 +331,17 @@ export class AudioEngine {
         this.mic = await navigator.mediaDevices.getUserMedia(constraints());
       }
       this.mic.getAudioTracks().forEach((t) => t.addEventListener("ended", () => { this.micKey = ""; }));
+      // On "Windows default", a virtual default (installing VB-CABLE makes CABLE Output the
+      // default microphone) is swapped for the real microphone.
+      if (!wanted && this.mic.getAudioTracks().some((t) => isVirtualMic(t.label))) {
+        const devices = await navigator.mediaDevices.enumerateDevices().catch(() => [] as MediaDeviceInfo[]);
+        const real = pickRealMic(devices.filter((d) => d.kind === "audioinput" && d.deviceId !== "default" && d.deviceId !== "communications"), "");
+        if (real) {
+          this.mic.getTracks().forEach((t) => t.stop());
+          this.mic = await navigator.mediaDevices.getUserMedia(constraints(real));
+          this.mic.getAudioTracks().forEach((t) => t.addEventListener("ended", () => { this.micKey = ""; }));
+        }
+      }
       // The virtual cable as microphone would feed our own output back in, forever.
       if (this.mic.getAudioTracks().some((t) => LOOP_PATTERN.test(t.label))) {
         this.mic.getTracks().forEach((t) => t.stop());
@@ -401,6 +426,17 @@ export class AudioEngine {
   setBypass(on: boolean): void {
     this.bypass = on;
     this.levels();
+  }
+
+  /** Listens to the room for ms (stay silent) and returns the loudest noise peak, in dBFS. */
+  async measureNoiseFloor(ms = 2500): Promise<number> {
+    let loudest = -100;
+    const end = performance.now() + ms;
+    while (performance.now() < end) {
+      loudest = Math.max(loudest, this.meter("input"));
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return loudest;
   }
 
   /** Live levels in dBFS for the meters. */

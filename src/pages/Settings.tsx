@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppWindow, Cable, CheckCircle2, Download, Keyboard, Loader2, RefreshCw, SlidersHorizontal, XCircle, type LucideIcon } from "lucide-react";
 import { Card, HotkeyInput, Meter, MidiLearn, PageHeader, Row, Slider, Switch } from "../components/ui";
+import { MicSensitivity } from "../components/MicSensitivity";
 import { UpdateButton } from "../components/UpdateButton";
 import { cv } from "../lib/bridge";
 import { CABLE_PATTERN, isVirtualMic, useDevices } from "../lib/devices";
@@ -49,9 +50,10 @@ function AudioTab() {
   const t = useT();
   const { data, setSettings } = useStore();
   const s = data.settings;
-  const { inputs, outputs, defaultInputLabel, refresh } = useDevices();
+  const { inputs, outputs, refresh } = useDevices();
   const cable = outputs.find((o) => CABLE_PATTERN.test(o.label));
-  const micLabel = s.inputDeviceId === "default" ? defaultInputLabel : inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
+  // On "default" the engine swaps a virtual default for the real microphone by itself.
+  const micLabel = inputs.find((d) => d.deviceId === s.inputDeviceId)?.label ?? "";
   const same = !!s.monitorOutputId && (s.monitorOutputId === s.streamOutputId || (!s.streamOutputId && s.monitorOutputId === cable?.deviceId));
   return (
     <div className="space-y-6">
@@ -84,7 +86,7 @@ function AudioTab() {
             <Slider value={s.inputGainDb} min={-12} max={24} step={0.5} onChange={(v) => setSettings({ inputGainDb: v })} format={(v) => `${v > 0 ? "+" : ""}${v} dB`} />
           </div>
         </Row>
-        <div className="mb-3 ml-auto w-80"><Meter which="input" /></div>
+        <div className="border-t border-void-700 py-3"><MicSensitivity /></div>
         <Row title={t("settings.noise")} help={t("settings.noiseHelp")}>
           <Switch checked={s.noiseSuppression} onChange={(v) => setSettings({ noiseSuppression: v })} />
         </Row>
