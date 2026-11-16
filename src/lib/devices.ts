@@ -37,7 +37,7 @@ export function useDevices(): Devices & { refresh: () => void } {
 export const CABLE_PATTERN = /cable input|vb-audio virtual cable/i;
 
 /** Microphones made by other software (voice changers, the cable itself): not a real voice. */
-const VIRTUAL_MIC = /voicemod|cable output|vb-audio|voicemeeter|virtual|clownfish|morphvox/i;
+const VIRTUAL_MIC = /voicemod|cable output|vb-audio|voicemeeter|virtual|clownfish|morphvox|stereo mix|mixage st[ée]r[ée]o|what u hear/i;
 
 export const isVirtualMic = (label: string): boolean => VIRTUAL_MIC.test(label);
 

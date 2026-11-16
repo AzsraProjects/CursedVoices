@@ -331,9 +331,11 @@ export class AudioEngine {
         this.mic = await navigator.mediaDevices.getUserMedia(constraints());
       }
       this.mic.getAudioTracks().forEach((t) => t.addEventListener("ended", () => { this.micKey = ""; }));
-      // On "Windows default", a virtual default (installing VB-CABLE makes CABLE Output the
-      // default microphone) is swapped for the real microphone.
-      if (!wanted && this.mic.getAudioTracks().some((t) => isVirtualMic(t.label))) {
+      // A virtual microphone we did not pick by hand is swapped for the real one: installing
+      // VB-CABLE makes CABLE Output the Windows default, and that default is also what we
+      // land on when the chosen microphone was unplugged (a new audio interface, say).
+      const pickedByHand = !!wanted && this.mic.getAudioTracks()[0]?.getSettings().deviceId === wanted;
+      if (!pickedByHand && this.mic.getAudioTracks().some((t) => isVirtualMic(t.label))) {
         const devices = await navigator.mediaDevices.enumerateDevices().catch(() => [] as MediaDeviceInfo[]);
         const real = pickRealMic(devices.filter((d) => d.kind === "audioinput" && d.deviceId !== "default" && d.deviceId !== "communications"), "");
         if (real) {
